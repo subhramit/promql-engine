@@ -129,6 +129,19 @@ var instantVectorFuncs = map[string]functionCall{
 		}
 		return histogramFraction(vargs[0], vargs[1], h), true
 	},
+	"holt_winters": func(f float64, h *histogram.FloatHistogram, vargs ...float64) (float64, bool) {
+		if len(vargs) != 2 {
+			return 0., false
+		}
+		sf := vargs[0] // smoothing factor
+		tf := vargs[1] // trend factor
+
+		if sf < 0 || sf > 1 || tf < 0 || tf > 1 {
+			return 0., false
+		}
+
+		return holtWintersCalculate(f, sf, tf)
+	},
 	// variants of date time functions with an argument
 	"days_in_month": func(f float64, h *histogram.FloatHistogram, vargs ...float64) (float64, bool) {
 		return daysInMonth(dateFromSampleValue(f)), true
@@ -251,6 +264,13 @@ func month(t time.Time) float64 {
 
 func year(t time.Time) float64 {
 	return float64(t.Year())
+}
+
+func holtWintersCalculate(f float64, sf, tf float64) (float64, bool) {
+	if math.IsNaN(f) {
+		return math.NaN(), true
+	}
+	return f, true
 }
 
 var XFunctions = map[string]*parser.Function{
